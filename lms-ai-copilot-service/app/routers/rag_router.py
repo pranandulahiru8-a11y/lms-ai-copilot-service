@@ -3,6 +3,7 @@ from app.services.vector_store_service import vector_store_service
 from fastapi import APIRouter, File, HTTPException, UploadFile
 from app.schemas.quiz import QuizRequest, QuizResponse
 from app.services.groq_service import groq_service
+from app.services.guardrail_service import guardrail_service
 
 router = APIRouter(prefix="/api/v1/rag", tags=["RAG Engine"])
 
@@ -47,6 +48,10 @@ async def ingest_pdf(file: UploadFile = File(...)):
 
 @router.post("/generate-quiz", response_model=QuizResponse)
 async def generate_rag_quiz(request: QuizRequest):
+
+    # 1. Input Security Guardrail Check
+    guardrail_service.validate_input_prompt(request.topic)
+
     try:
         # 1. Topic එකට අදාළ Chunks ChromaDB එකෙන් Retrieve කරගැනීම
         retrieved_chunks = vector_store_service.query_relevant_chunks(
