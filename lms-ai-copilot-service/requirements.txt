@@ -1,1 +1,9 @@
 # Project Dependencies
+fastapi
+uvicorn
+groq
+pydantic
+python-dotenv
+chromadb
+pypdf
+python-multipart
