@@ -1,6 +1,8 @@
 from app.services.pdf_service import pdf_service
 from app.services.vector_store_service import vector_store_service
 from fastapi import APIRouter, File, HTTPException, UploadFile
+from app.schemas.quiz import QuizRequest, QuizResponse
+from app.services.groq_service import groq_service
 
 router = APIRouter(prefix="/api/v1/rag", tags=["RAG Engine"])
 
@@ -40,4 +42,40 @@ async def ingest_pdf(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"PDF Ingestion Failed: {str(e)}"
+        )
+
+
+@router.post("/generate-quiz", response_model=QuizResponse)
+async def generate_rag_quiz(request: QuizRequest):
+    try:
+        # 1. Topic එකට අදාළ Chunks ChromaDB එකෙන් Retrieve කරගැනීම
+        retrieved_chunks = vector_store_service.query_relevant_chunks(
+            query=request.topic, n_results=4
+        )
+
+        if not retrieved_chunks:
+            raise HTTPException(
+                status_code=404,
+                detail=(
+                    "No relevant lecture notes found in ChromaDB for this"
+                    " topic. Please upload a PDF first."
+                ),
+            )
+
+        # 2. Context Strings එකතු කිරීම
+        context_text = "\n---\n".join(retrieved_chunks)
+
+        # 3. Context-aware Quiz එකක් Generate කිරීම
+        quiz_data = await groq_service.generate_rag_quiz_json(
+            topic=request.topic,
+            context=context_text,
+            num_questions=request.num_questions,
+            difficulty=request.difficulty,
+        )
+
+        return quiz_data
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"RAG Quiz Generation Failed: {str(e)}"
         )
