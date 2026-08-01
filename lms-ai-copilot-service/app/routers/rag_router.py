@@ -4,6 +4,7 @@ from fastapi import APIRouter, File, HTTPException, UploadFile
 from app.schemas.quiz import QuizRequest, QuizResponse
 from app.services.groq_service import groq_service
 from app.services.guardrail_service import guardrail_service
+from app.services.cache_service import cache_service
 
 router = APIRouter(prefix="/api/v1/rag", tags=["RAG Engine"])
 
@@ -52,8 +53,18 @@ async def generate_rag_quiz(request: QuizRequest):
     # 1. Input Security Guardrail Check
     guardrail_service.validate_input_prompt(request.topic)
 
+    # 2. Check Cache First
+    cached_rag_quiz = cache_service.get(
+        prefix="rag_quiz",
+        topic=request.topic,
+        num_questions=request.num_questions,
+        difficulty=request.difficulty,
+    )
+    if cached_rag_quiz:
+        return cached_rag_quiz
+
     try:
-        # 1. Topic එකට අදාළ Chunks ChromaDB එකෙන් Retrieve කරගැනීම
+        # Fetch from Vector DB & LLM on Cache Miss
         retrieved_chunks = vector_store_service.query_relevant_chunks(
             query=request.topic, n_results=4
         )
@@ -74,6 +85,15 @@ async def generate_rag_quiz(request: QuizRequest):
         quiz_data = await groq_service.generate_rag_quiz_json(
             topic=request.topic,
             context=context_text,
+            num_questions=request.num_questions,
+            difficulty=request.difficulty,
+        )
+
+        # Save to Cache
+        cache_service.set(
+            prefix="rag_quiz",
+            value=quiz_data,
+            topic=request.topic,
             num_questions=request.num_questions,
             difficulty=request.difficulty,
         )
