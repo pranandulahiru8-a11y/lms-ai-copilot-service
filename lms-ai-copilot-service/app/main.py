@@ -4,6 +4,7 @@ from app.core.config import settings
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers.quiz_router import router as quiz_router
+from app.routers.evaluation_router import router as evaluation_router
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -21,6 +22,7 @@ app.add_middleware(
 
 # Register Routers
 app.include_router(quiz_router)
+app.include_router(evaluation_router)
 
 @app.get("/api/v1/health", tags=["Health"])
 async def health_check():
