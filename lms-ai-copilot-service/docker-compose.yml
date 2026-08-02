@@ -1,0 +1,11 @@
+services:
+  lms-ai-service:
+    build: .
+    container_name: lms_ai_microservice
+    ports:
+      - "8005:8000"
+    env_file:
+      - .env
+    volumes:
+      - ./chroma_db:/app/chroma_db
+    restart: always
