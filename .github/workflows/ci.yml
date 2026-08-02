@@ -35,8 +35,9 @@ jobs:
       - name: Run Pytest Suite
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          PYTHONPATH: .
         run: |
-          pytest -v
+          python -m pytest -v
 
   docker-build-test:
     name: Test Docker Image Build
