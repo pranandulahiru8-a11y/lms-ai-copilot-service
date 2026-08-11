@@ -1,5 +1,6 @@
 package com.lms.backend.controller;
 
+import java.util.Objects;
 import com.lms.backend.dto.AuthRequest;
 import com.lms.backend.dto.AuthResponse;
 import com.lms.backend.dto.RegisterRequest;
@@ -34,7 +35,7 @@ public class AuthController {
                 .role(request.getRole() != null ? request.getRole() : Role.ROLE_STUDENT)
                 .build();
 
-        userRepository.save(user);
+        userRepository.save(Objects.requireNonNull(user));
         return ResponseEntity.ok("User registered successfully!");
     }
 
