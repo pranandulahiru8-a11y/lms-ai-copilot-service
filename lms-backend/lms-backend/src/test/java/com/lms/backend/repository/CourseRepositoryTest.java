@@ -72,8 +72,10 @@ class CourseRepositoryTest {
         List<Course> instructorCourses = courseRepository.findByInstructor(instructor);
 
         assertThat(instructorCourses).hasSize(2);
-        assertThat(instructorCourses).extracting(Course::getCourseCode)
-                .containsExactlyInAnyOrder("CS101", "CS102");
+        
+        assertThat(instructorCourses)
+        .map(course -> course.getCourseCode())
+        .containsExactlyInAnyOrder("CS101", "CS102");
     }
 
     @Test

@@ -1,5 +1,6 @@
 package com.lms.backend.controller;
 
+import java.util.Objects;
 import com.lms.backend.dto.EvaluationRequestDto;
 import com.lms.backend.dto.EvaluationResponseDto;
 import com.lms.backend.dto.QuizRequestDto;
@@ -64,7 +65,7 @@ public class AssessmentController {
                 .quizDataJson(jsonString)
                 .build();
 
-        Assessment savedAssessment = assessmentRepository.saveAndFlush(assessment);
+        Assessment savedAssessment = assessmentRepository.saveAndFlush(Objects.requireNonNull(assessment));
 
         log.info("💾 Saved Assessment ID: {}", savedAssessment.getId());
 
@@ -98,7 +99,7 @@ public class AssessmentController {
                 .feedbackForStudent(responseDto.getFeedbackForStudent())
                 .build();
 
-        assessmentResultRepository.save(result);
+        assessmentResultRepository.save(Objects.requireNonNull(result));
         return ResponseEntity.ok(responseDto);
     }
 

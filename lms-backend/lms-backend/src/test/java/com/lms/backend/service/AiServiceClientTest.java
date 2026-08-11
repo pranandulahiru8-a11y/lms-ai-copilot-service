@@ -114,13 +114,20 @@ class AiServiceClientTest {
     @Test
     @DisplayName("PDF Ingestion: Should send multipart request to /rag/ingest-pdf")
     void ingestPdf_Success() throws InterruptedException {
+
+        
         // Given
-        Resource pdfResource = new ByteArrayResource("Dummy PDF Content".getBytes()) {
+        byte[] pdfBytes = java.util.Objects.requireNonNull(
+        "Dummy PDF Content".getBytes(java.nio.charset.StandardCharsets.UTF_8)
+);
+
+        Resource pdfResource = new ByteArrayResource(pdfBytes) {
             @Override
             public String getFilename() {
                 return "test-document.pdf";
             }
         };
+        
 
         mockWebServer.enqueue(new MockResponse()
                 .setResponseCode(200)
