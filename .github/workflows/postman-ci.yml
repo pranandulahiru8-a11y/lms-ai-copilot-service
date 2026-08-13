@@ -39,7 +39,7 @@ jobs:
         run: |
           JAR_FILE=$(ls target/*.jar | grep -v 'original' | head -n 1)
           echo "Starting Spring Boot JAR: $JAR_FILE"
-          
+
           # CI Environment එක සඳහා In-Memory H2 / Test configuration Overrides ලබා දීම
           nohup java -jar "$JAR_FILE" \
             --spring.datasource.url=jdbc:h2:mem:lmsdb;DB_CLOSE_DELAY=-1 \
@@ -51,10 +51,10 @@ jobs:
             > /tmp/app.log 2>&1 &
 
           echo "Waiting for Spring Boot application to start..."
-          
+
           APP_UP=false
           for i in {1..20}; do
-            if curl -s http://localhost:8080/actuator/health | grep -q "UP"; then
+            if curl -s http://localhost:8085/actuator/health | grep -q "UP"; then
               echo "✅ Spring Boot is UP and Running!"
               APP_UP=true
               break
@@ -71,7 +71,7 @@ jobs:
             echo "========================================================"
             exit 1
           fi
-          
+
       - name: Install Node.js & Newman CLI
         uses: actions/setup-node@v4
         with:
