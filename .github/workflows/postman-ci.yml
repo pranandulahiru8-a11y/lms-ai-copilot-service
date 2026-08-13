@@ -37,29 +37,41 @@ jobs:
 
       - name: Run Spring Boot Application & Wait for Health
         run: |
-          # 1. Spring Boot executable JAR එක පමණක් තෝරාගැනීම (.original අයින් කර)
           JAR_FILE=$(ls target/*.jar | grep -v 'original' | head -n 1)
           echo "Starting Spring Boot JAR: $JAR_FILE"
+          
+          # CI Environment එක සඳහා In-Memory H2 / Test configuration Overrides ලබා දීම
+          nohup java -jar "$JAR_FILE" \
+            --spring.datasource.url=jdbc:h2:mem:lmsdb;DB_CLOSE_DELAY=-1 \
+            --spring.datasource.driverClassName=org.h2.Driver \
+            --spring.datasource.username=sa \
+            --spring.datasource.password= \
+            --spring.jpa.database-platform=org.hibernate.dialect.H2Dialect \
+            --spring.jpa.hibernate.ddl-auto=create-drop \
+            > /tmp/app.log 2>&1 &
 
-          # 2. System /tmp directory එකට log එක ලියමින් background එකේ run කිරීම
-          nohup java -jar "$JAR_FILE" > /tmp/app.log 2>&1 &
-
-          # 3. App එක UP වෙනකම් තප්පර 30ක් බලන් සිටීම (Every 2s check)
           echo "Waiting for Spring Boot application to start..."
-          for i in {1..15}; do
+          
+          APP_UP=false
+          for i in {1..20}; do
             if curl -s http://localhost:8080/actuator/health | grep -q "UP"; then
               echo "✅ Spring Boot is UP and Running!"
+              APP_UP=true
               break
             fi
-            echo "Waiting for app to boot... ($i/15)"
-            sleep 2
+            echo "Waiting for app to boot... ($i/20)"
+            sleep 3
           done
 
-          # 4. Startup Logs ටික Terminal එකේ Print කිරීම
-          echo "=== Spring Boot Startup Logs ==="
-          cat /tmp/app.log
-          echo "================================"
-
+          # App එක Start වුණේ නැත්නම් Exact Logs Print කර Pipeline එක Fail කිරීම
+          if [ "$APP_UP" = false ]; then
+            echo "❌ Spring Boot failed to start! Dumping application logs below:"
+            echo "=================== APP STARTUP LOGS ==================="
+            cat /tmp/app.log
+            echo "========================================================"
+            exit 1
+          fi
+          
       - name: Install Node.js & Newman CLI
         uses: actions/setup-node@v4
         with:
