@@ -7,10 +7,10 @@ spring:
 
   # Database Configuration
   datasource:
-    url: jdbc:postgresql://localhost:5433/lms_copilot_db
-    username: postgres
-    password: manoj
-    driver-class-name: org.postgresql.Driver
+    url: jdbc:h2:mem:lmsdb
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
 
   # JPA / Hibernate Configuration
   jpa:
