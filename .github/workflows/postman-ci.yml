@@ -37,6 +37,9 @@ jobs:
 
       - name: Verify Backend Readiness (Healthcheck)
         run: |
+          echo "=== Spring Boot Startup Logs ==="
+          cat app.log
+          echo "================================"
           curl --retry 10 --retry-delay 3 --retry-connrefused http://localhost:8080/actuator/health || true
 
       - name: Install Node.js & Newman CLI
