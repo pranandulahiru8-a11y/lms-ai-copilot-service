@@ -50,8 +50,8 @@ jobs:
 
       - name: Execute Postman Newman Tests
         run: |
-          newman run postman/lms_api_collection.json \
-            -e postman/lms_environment.json \
+          newman run '../../postman/lms_api_collection.json' \
+            -e '../../postman/lms_environment.json' \
             -r cli,htmlextra \
             --reporter-htmlextra-export newman-report.html
 
