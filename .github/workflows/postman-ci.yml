@@ -29,20 +29,14 @@ jobs:
       - name: Build Spring Boot JAR
         run: ./mvnw clean package -DskipTests
 
-      - name: Run Spring Boot Application in Background
-        run: |
-          java -jar target/*.jar --server.port=8080 &
-          echo "Waiting for Spring Boot application to start..."
-          sleep 20
-
       - name: Run Spring Boot Application & Wait for Health
         run: |
           JAR_FILE=$(ls target/*.jar | grep -v 'original' | head -n 1)
           echo "Starting Spring Boot JAR: $JAR_FILE"
 
-          # CI Environment එක සඳහා In-Memory H2 / Test configuration Overrides ලබා දීම
+          # Use double quotes around the JDBC URL to protect the semicolon from Bash
           nohup java -jar "$JAR_FILE" \
-            --spring.datasource.url=jdbc:h2:mem:lmsdb;DB_CLOSE_DELAY=-1 \
+            --spring.datasource.url="jdbc:h2:mem:lmsdb;DB_CLOSE_DELAY=-1" \
             --spring.datasource.driverClassName=org.h2.Driver \
             --spring.datasource.username=sa \
             --spring.datasource.password= \
@@ -54,7 +48,7 @@ jobs:
 
           APP_UP=false
           for i in {1..20}; do
-            if curl -s http://localhost:8085/actuator/health | grep -q "UP"; then
+            if curl -s http://localhost:8080/actuator/health | grep -q "UP"; then
               echo "✅ Spring Boot is UP and Running!"
               APP_UP=true
               break
@@ -63,7 +57,6 @@ jobs:
             sleep 3
           done
 
-          # App එක Start වුණේ නැත්නම් Exact Logs Print කර Pipeline එක Fail කිරීම
           if [ "$APP_UP" = false ]; then
             echo "❌ Spring Boot failed to start! Dumping application logs below:"
             echo "=================== APP STARTUP LOGS ==================="
@@ -93,4 +86,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: newman-api-test-report
-          path: newman-report.html
+          path: lms-backend/lms-backend/newman-report.html
